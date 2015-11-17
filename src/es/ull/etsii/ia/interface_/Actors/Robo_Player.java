@@ -15,6 +15,7 @@ import es.ull.etsii.ia.interface_.geometry.drawable.DrawableCircle;
 import es.ull.etsii.ia.interface_.geometry.drawable.DrawableRectangle;
 import es.ull.etsii.ia.interface_.simulation.CoordinateSystem2D;
 import es.ull.etsii.ia.interface_.simulation.HiveMemory;
+import es.ull.etsit.enjambre.agent.PerceptionScan;
 import es.ull.utils.Distance;
 
 /**
@@ -31,7 +32,7 @@ public class Robo_Player extends Actor {
 	private boolean evaluationMode = true;								//	true si se encuentra en modo evaluacion.
 	private Vision2D view;												//	ultima percepcion obtenida.
 	private HiveMemory memory;											//	Memoria en comun con todo su equipo
-	private PerceptionScan lastScanned;									//	escaneo de la ultima percepcion.
+	private PerceptionScan<Object, Actor> lastScanned;									//	escaneo de la ultima percepcion.
 	private Evaluation<Actor> bestEvaluation;							//	mejor evaluacion del ultimo proceso de evaluacion.
 	private Action<Actor> moveD = (actor) -> {							//	accion de movimiento.
 		move(getBestEvaluation().getPos());
@@ -174,29 +175,29 @@ public class Robo_Player extends Actor {
 	 * @param pos
 	 * @return Evaluation.
 	 */
-	private Evaluation<Actor> evaluateDef(PerceptionScan elements, int pos) {
+	private Evaluation<Actor> evaluateDef(PerceptionScan<Object, Actor> elements, int pos) {
 		Evaluation<Actor> ev = new Evaluation<Actor>();
 		ev.setPos(pos);
 		ev.setDecision(moveD);
 		Point2D position = getPos().add(MOVEMENT[pos]);
 		int value = 1;
-		if (elements.getBall() != null) {
-			double manlength = elements.distanceToBall(position);
-			value += manlength * getMemory().getHiveSize();			// mas cerca de la pelota es mejor
-			if (manlength == 0) {
-				ev.setDecision(pushMove);
-			} 
-		} else
-		value += elements.distanceToFoes(position);					//	mas cerca de los enemigos es mejor ( entorpecer su ataque / defensa)
-		for (Robo_Player ally : elements.getAlly()) {
-			if (ally != this) {
-				value -= Distance.manhattan((int) ally.getPos().x(), (int) ally
-						.getPos().y(), (int) position.x(), (int) position.y());		//	alejarse de los aliados es mejor (cubrir mas campo)
-				if (elements.getBall() != null) {
-					turnFriend(ally, elements.getBall());
-				}
-			}
-		}
+//		if (!elements.get(Ball.class).isEmpty()) {
+//			double manlength = elements.distanceToBall(position);
+//			value += manlength * getMemory().getHiveSize();			// mas cerca de la pelota es mejor
+//			if (manlength == 0) {
+//				ev.setDecision(pushMove);
+//			} 
+//		} else
+//		value += elements.distanceToFoes(position);					//	mas cerca de los enemigos es mejor ( entorpecer su ataque / defensa)
+//		for (Robo_Player ally : elements.getAlly()) {
+//			if (ally != this) {
+//				value -= Distance.manhattan((int) ally.getPos().x(), (int) ally
+//						.getPos().y(), (int) position.x(), (int) position.y());		//	alejarse de los aliados es mejor (cubrir mas campo)
+//				if (elements.getBall() != null) {
+//					turnFriend(ally, elements.getBall());
+//				}
+//			}
+//		}
 		ev.setValue(value);
 		return ev;
 	}
@@ -213,38 +214,38 @@ public class Robo_Player extends Actor {
 		ev.setDecision(moveD);
 		Point2D position = getPos().add(MOVEMENT[pos]);
 		int value = 1;
-		if (elements.getBall() != null) {
-			int manlength = elements.distanceToBall(position);
-			if(!elements.getGoal().isEmpty()){
-			int ballGoal = elements.distanceToEnemyGoal(elements.getBall()
-					.getPos(), getTeam());
-			int posGoal = elements.distanceToEnemyGoal(getPos(), getTeam());
-			if (ballGoal < posGoal) {
-				if (manlength == 0) {
-					ev.setDecision(shoot);
-				} else {
-					value += manlength;
-				}
-			} else if (manlength == 0) {
-				value += manlength + (ballGoal - posGoal);
-				ev.setDecision(pushMove);
-			} else {
-				value += manlength + (ballGoal - posGoal);
-			}
-			}else if(pos == NORTH || pos == SOUTH)
-				value += 10;
-		} else
-			ev.setDecision(moveD);
-		value += elements.distanceToFoes(position);
-		for (Robo_Player ally : elements.getAlly()) {
-			if (ally != this) {
-				value -= Distance.manhattan((int) ally.getPos().x(), (int) ally
-						.getPos().y(), (int) position.x(), (int) position.y());
-				if (!elements.getFoeGoal(getTeam()).isEmpty()) {
-					turnFriend(ally,elements.getFoeGoal(getTeam()).get(0));
-				}
-			}
-		}
+//		if (elements.getBall() != null) {
+//			int manlength = elements.distanceToBall(position);
+//			if(!elements.getGoal().isEmpty()){
+//			int ballGoal = elements.distanceToEnemyGoal(elements.getBall()
+//					.getPos(), getTeam());
+//			int posGoal = elements.distanceToEnemyGoal(getPos(), getTeam());
+//			if (ballGoal < posGoal) {
+//				if (manlength == 0) {
+//					ev.setDecision(shoot);
+//				} else {
+//					value += manlength;
+//				}
+//			} else if (manlength == 0) {
+//				value += manlength + (ballGoal - posGoal);
+//				ev.setDecision(pushMove);
+//			} else {
+//				value += manlength + (ballGoal - posGoal);
+//			}
+//			}else if(pos == NORTH || pos == SOUTH)
+//				value += 10;
+//		} else
+//			ev.setDecision(moveD);
+//		value += elements.distanceToFoes(position);
+//		for (Robo_Player ally : elements.getAlly()) {
+//			if (ally != this) {
+//				value -= Distance.manhattan((int) ally.getPos().x(), (int) ally
+//						.getPos().y(), (int) position.x(), (int) position.y());
+//				if (!elements.getFoeGoal(getTeam()).isEmpty()) {
+//					turnFriend(ally,elements.getFoeGoal(getTeam()).get(0));
+//				}
+//			}
+//		}
 		ev.setValue(value);
 		return ev;
 	}
@@ -302,11 +303,12 @@ public class Robo_Player extends Actor {
 	 * devuelve el resultado de escanear la percepcion actual.
 	 * @return PerceptionScan
 	 */
-	private PerceptionScan scanView() {
+	private PerceptionScan<Object, Actor> scanView() {
 		setView(getMap().perceive(this));
-		PerceptionScan elements = new PerceptionScan();
+		PerceptionScan<Object, Actor> elements = new PerceptionScan<Object, Actor>();
 		for (Actor element : getView()) {
 			if ((element != null)) {
+				elements.add(element.c, value);
 				if ((element.getClass() == Robo_Player.class)) {
 					if (((Robo_Player) element).getTeam() == getTeam()) {
 						elements.addAlly((Robo_Player) element);
